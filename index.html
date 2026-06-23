@@ -69,9 +69,9 @@ gap:20px;
 background:#1f2937;
 padding:20px;
 border-radius:15px;
-border:2px solid transparent;
-transition:0.3s;
 cursor:pointer;
+transition:.3s;
+border:2px solid transparent;
 }
 
 .movie-card:hover{
@@ -94,52 +94,130 @@ margin-top:10px;
 }
 
 .booking{
-margin-top:30px;
 display:none;
+margin-top:30px;
 background:#1f2937;
 padding:20px;
 border-radius:15px;
 }
 
-select{
+.booking select{
 width:100%;
-padding:10px;
-margin-top:10px;
+padding:12px;
 border:none;
 border-radius:10px;
+margin-top:10px;
+margin-bottom:10px;
+}
+
+.screen{
+width:80%;
+height:60px;
+margin:25px auto;
+background:linear-gradient(to bottom,#fff,#ddd);
+color:#111;
+font-weight:bold;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:100px 100px 20px 20px;
+box-shadow:0 0 30px rgba(255,255,255,.4);
+}
+
+.legend{
+display:flex;
+justify-content:center;
+gap:20px;
+flex-wrap:wrap;
+margin-bottom:20px;
+}
+
+.box{
+width:15px;
+height:15px;
+display:inline-block;
+border-radius:4px;
+margin-right:5px;
+}
+
+.free{
+background:#374151;
+}
+
+.selected{
+background:#3b82f6;
+}
+
+.occupied{
+background:#ef4444;
+}
+
+.vip{
+background:#f59e0b;
 }
 
 .seats{
 display:grid;
 grid-template-columns:repeat(8,1fr);
 gap:10px;
-margin-top:20px;
+max-width:650px;
+margin:auto;
 }
 
 .seat{
+height:45px;
 background:#374151;
-height:40px;
-border-radius:8px;
-cursor:pointer;
 display:flex;
 align-items:center;
 justify-content:center;
+border-radius:8px;
+cursor:pointer;
+font-size:12px;
+transition:.2s;
+}
+
+.seat:hover{
+transform:scale(1.05);
 }
 
 .seat.selected{
-background:#10b981;
+background:#3b82f6;
+}
+
+.seat.occupied{
+background:#ef4444;
+cursor:not-allowed;
+}
+
+.seat.vip{
+background:#f59e0b;
 }
 
 .book-btn{
-margin-top:20px;
 width:100%;
+margin-top:20px;
 padding:15px;
 border:none;
+border-radius:10px;
 background:#10b981;
 color:white;
 font-size:18px;
-border-radius:10px;
 cursor:pointer;
+}
+
+.book-btn:hover{
+opacity:.9;
+}
+
+@media(max-width:600px){
+
+.seats{
+grid-template-columns:repeat(4,1fr);
+}
+
+.movie-icon{
+font-size:50px;
+}
 }
 </style>
 </head>
@@ -159,7 +237,8 @@ onkeyup="searchMovie()">
 <div class="add-form">
 <input id="title" placeholder="Filmtitel">
 <input id="genre" placeholder="Genre">
-<input id="duration" placeholder="Dauer">
+<input id="duration" type="text" placeholder="Dauer in Minuten">
+
 <select id="fsk">
 <option>FSK 0</option>
 <option>FSK 6</option>
@@ -167,7 +246,10 @@ onkeyup="searchMovie()">
 <option>FSK 16</option>
 <option>FSK 18</option>
 </select>
-<button onclick="addMovie()">Film hinzufügen</button>
+
+<button onclick="addMovie()">
+Film hinzufügen
+</button>
 </div>
 
 <div id="movies" class="movies"></div>
@@ -196,9 +278,22 @@ onkeyup="searchMovie()">
 <option>21:30</option>
 </select>
 
-<h3 style="margin-top:20px;">Sitzplatz wählen</h3>
+<h3 style="margin-top:20px;">
+Sitzplatz wählen
+</h3>
 
-<div class="seats" id="seats"></div>
+<div class="screen">
+🎥 LEINWAND
+</div>
+
+<div class="legend">
+<div><span class="box free"></span>Frei</div>
+<div><span class="box selected"></span>Ausgewählt</div>
+<div><span class="box occupied"></span>Reserviert</div>
+<div><span class="box vip"></span>VIP</div>
+</div>
+
+<div id="seats" class="seats"></div>
 
 <button class="book-btn" onclick="bookTicket()">
 🎟 Ticket buchen
@@ -218,15 +313,15 @@ duration:"162",
 fsk:"FSK 12"
 },
 {
-title:"Drachenwelt",
-genre:"Fantasy",
-duration:"142",
-fsk:"FSK 6"
-},
-{
 title:"Sommerregen",
 genre:"Romanze",
 duration:"105",
+fsk:"FSK 6"
+},
+{
+title:"Drachenwelt",
+genre:"Fantasy",
+duration:"142",
 fsk:"FSK 6"
 }
 ];
@@ -234,19 +329,24 @@ fsk:"FSK 6"
 let currentMovie = "";
 
 function saveMovies(){
-localStorage.setItem("movies", JSON.stringify(movies));
+localStorage.setItem(
+"movies",
+JSON.stringify(movies)
+);
 }
 
 function renderMovies(){
 
-const container = document.getElementById("movies");
+const container =
+document.getElementById("movies");
 
 container.innerHTML = "";
 
 movies.forEach(movie=>{
 
 container.innerHTML += `
-<div class="movie-card" onclick="openBooking('${movie.title}')">
+<div class="movie-card"
+onclick="openBooking('${movie.title}')">
 
 <div class="movie-icon">🎬</div>
 
@@ -260,17 +360,34 @@ container.innerHTML += `
 
 </div>
 `;
+
 });
 }
 
 function addMovie(){
 
-const title=document.getElementById("title").value;
-const genre=document.getElementById("genre").value;
-const duration=document.getElementById("duration").value;
-const fsk=document.getElementById("fsk").value;
+const title =
+document.getElementById("title").value.trim();
 
-if(!title) return;
+const genre =
+document.getElementById("genre").value.trim();
+
+let duration =
+document.getElementById("duration").value.trim();
+
+const fsk =
+document.getElementById("fsk").value;
+
+duration = duration
+.replace(/minuten/gi,"")
+.replace(/min\./gi,"")
+.replace(/min/gi,"")
+.trim();
+
+if(title === ""){
+alert("Bitte Titel eingeben.");
+return;
+}
 
 movies.push({
 title,
@@ -289,17 +406,19 @@ document.getElementById("duration").value="";
 
 function searchMovie(){
 
-let value=document
-.getElementById("search")
+const value =
+document.getElementById("search")
 .value
 .toLowerCase();
 
-let cards=document.querySelectorAll(".movie-card");
+const cards =
+document.querySelectorAll(".movie-card");
 
 cards.forEach(card=>{
 
-card.style.display=
-card.innerText.toLowerCase().includes(value)
+card.style.display =
+card.innerText.toLowerCase()
+.includes(value)
 ? "block"
 : "none";
 
@@ -310,10 +429,14 @@ function openBooking(movie){
 
 currentMovie = movie;
 
-document.getElementById("booking").style.display="block";
-
-document.getElementById("selectedMovie").innerText=
+document.getElementById(
+"selectedMovie"
+).innerText =
 "Film: " + movie;
+
+document.getElementById(
+"booking"
+).style.display = "block";
 
 createSeats();
 
@@ -325,21 +448,41 @@ behavior:"smooth"
 
 function createSeats(){
 
-const seats=document.getElementById("seats");
+const seats =
+document.getElementById("seats");
 
-seats.innerHTML="";
+seats.innerHTML = "";
+
+const reservedSeats = [
+5,8,12,15,19,24,31
+];
 
 for(let i=1;i<=40;i++){
 
-const seat=document.createElement("div");
+const seat =
+document.createElement("div");
 
-seat.className="seat";
+seat.classList.add("seat");
 
-seat.innerText=i;
+seat.textContent = i;
 
-seat.onclick=()=>{
+if(reservedSeats.includes(i)){
+seat.classList.add("occupied");
+}
+
+if(i >= 33){
+seat.classList.add("vip");
+}
+
+seat.addEventListener("click",()=>{
+
+if(seat.classList.contains("occupied")){
+return;
+}
+
 seat.classList.toggle("selected");
-};
+
+});
 
 seats.appendChild(seat);
 }
@@ -347,28 +490,43 @@ seats.appendChild(seat);
 
 function bookTicket(){
 
-const selectedSeats=
-document.querySelectorAll(".seat.selected");
+const selectedSeats =
+document.querySelectorAll(
+".seat.selected"
+);
 
-if(selectedSeats.length===0){
-alert("Bitte Sitzplatz wählen");
+if(selectedSeats.length === 0){
+alert(
+"Bitte mindestens einen Sitz auswählen."
+);
 return;
 }
 
-const hall=document.getElementById("hall").value;
-const date=document.getElementById("date").value;
-const time=document.getElementById("time").value;
+const seatNumbers =
+[...selectedSeats]
+.map(seat=>seat.textContent)
+.join(", ");
+
+const hall =
+document.getElementById("hall").value;
+
+const date =
+document.getElementById("date").value;
+
+const time =
+document.getElementById("time").value;
 
 alert(
-`Buchung erfolgreich!
+`🎟 Buchung erfolgreich!
 
 Film: ${currentMovie}
+
 Saal: ${hall}
 Datum: ${date}
 Uhrzeit: ${time}
-Sitze: ${selectedSeats.length}`
-);
 
+Sitze: ${seatNumbers}`
+);
 }
 
 renderMovies();
