@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinobuchungssystem</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#111827;
+color:white;
+padding:20px;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
+}
+
+.search-box{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+margin-bottom:20px;
+font-size:16px;
+}
+
+.add-form{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:10px;
+margin-bottom:30px;
+}
+
+.add-form input,
+.add-form select,
+.add-form button{
+padding:12px;
+border:none;
+border-radius:10px;
+}
+
+.add-form button{
+background:#4f46e5;
+color:white;
+cursor:pointer;
+}
+
+.movies{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+
+.movie-card{
+background:#1f2937;
+padding:20px;
+border-radius:15px;
+border:2px solid transparent;
+transition:0.3s;
+cursor:pointer;
+}
+
+.movie-card:hover{
+border-color:#6366f1;
+}
+
+.movie-icon{
+font-size:60px;
+text-align:center;
+margin-bottom:10px;
+}
+
+.badge{
+display:inline-block;
+padding:5px 10px;
+border-radius:20px;
+background:#4f46e5;
+font-size:12px;
+margin-top:10px;
+}
+
+.booking{
+margin-top:30px;
+display:none;
+background:#1f2937;
+padding:20px;
+border-radius:15px;
+}
+
+select{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:10px;
+}
+
+.seats{
+display:grid;
+grid-template-columns:repeat(8,1fr);
+gap:10px;
+margin-top:20px;
+}
+
+.seat{
+background:#374151;
+height:40px;
+border-radius:8px;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.seat.selected{
+background:#10b981;
+}
+
+.book-btn{
+margin-top:20px;
+width:100%;
+padding:15px;
+border:none;
+background:#10b981;
+color:white;
+font-size:18px;
+border-radius:10px;
+cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🎬 Kinobuchungssystem</h1>
+
+<input
+type="text"
+id="search"
+class="search-box"
+placeholder="Film suchen..."
+onkeyup="searchMovie()">
+
+<div class="add-form">
+<input id="title" placeholder="Filmtitel">
+<input id="genre" placeholder="Genre">
+<input id="duration" placeholder="Dauer">
+<select id="fsk">
+<option>FSK 0</option>
+<option>FSK 6</option>
+<option>FSK 12</option>
+<option>FSK 16</option>
+<option>FSK 18</option>
+</select>
+<button onclick="addMovie()">Film hinzufügen</button>
+</div>
+
+<div id="movies" class="movies"></div>
+
+<div class="booking" id="booking">
+
+<h2 id="selectedMovie"></h2>
+
+<select id="hall">
+<option>Saal 1 - Classic</option>
+<option>Saal 2 - Premium</option>
+<option>Saal 3 - IMAX</option>
+<option>Saal 4 - VIP Lounge</option>
+</select>
+
+<select id="date">
+<option>Heute</option>
+<option>Morgen</option>
+<option>Übermorgen</option>
+</select>
+
+<select id="time">
+<option>14:00</option>
+<option>16:30</option>
+<option>19:00</option>
+<option>21:30</option>
+</select>
+
+<h3 style="margin-top:20px;">Sitzplatz wählen</h3>
+
+<div class="seats" id="seats"></div>
+
+<button class="book-btn" onclick="bookTicket()">
+🎟 Ticket buchen
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+let movies = JSON.parse(localStorage.getItem("movies")) || [
+{
+title:"Avatar",
+genre:"Fantasy",
+duration:"162",
+fsk:"FSK 12"
+},
+{
+title:"Drachenwelt",
+genre:"Fantasy",
+duration:"142",
+fsk:"FSK 6"
+},
+{
+title:"Sommerregen",
+genre:"Romanze",
+duration:"105",
+fsk:"FSK 6"
+}
+];
+
+let currentMovie = "";
+
+function saveMovies(){
+localStorage.setItem("movies", JSON.stringify(movies));
+}
+
+function renderMovies(){
+
+const container = document.getElementById("movies");
+
+container.innerHTML = "";
+
+movies.forEach(movie=>{
+
+container.innerHTML += `
+<div class="movie-card" onclick="openBooking('${movie.title}')">
+
+<div class="movie-icon">🎬</div>
+
+<h3>${movie.title}</h3>
+
+<p>${movie.genre}</p>
+
+<p>${movie.duration} Minuten</p>
+
+<div class="badge">${movie.fsk}</div>
+
+</div>
+`;
+});
+}
+
+function addMovie(){
+
+const title=document.getElementById("title").value;
+const genre=document.getElementById("genre").value;
+const duration=document.getElementById("duration").value;
+const fsk=document.getElementById("fsk").value;
+
+if(!title) return;
+
+movies.push({
+title,
+genre,
+duration,
+fsk
+});
+
+saveMovies();
+renderMovies();
+
+document.getElementById("title").value="";
+document.getElementById("genre").value="";
+document.getElementById("duration").value="";
+}
+
+function searchMovie(){
+
+let value=document
+.getElementById("search")
+.value
+.toLowerCase();
+
+let cards=document.querySelectorAll(".movie-card");
+
+cards.forEach(card=>{
+
+card.style.display=
+card.innerText.toLowerCase().includes(value)
+? "block"
+: "none";
+
+});
+}
+
+function openBooking(movie){
+
+currentMovie = movie;
+
+document.getElementById("booking").style.display="block";
+
+document.getElementById("selectedMovie").innerText=
+"Film: " + movie;
+
+createSeats();
+
+window.scrollTo({
+top:document.body.scrollHeight,
+behavior:"smooth"
+});
+}
+
+function createSeats(){
+
+const seats=document.getElementById("seats");
+
+seats.innerHTML="";
+
+for(let i=1;i<=40;i++){
+
+const seat=document.createElement("div");
+
+seat.className="seat";
+
+seat.innerText=i;
+
+seat.onclick=()=>{
+seat.classList.toggle("selected");
+};
+
+seats.appendChild(seat);
+}
+}
+
+function bookTicket(){
+
+const selectedSeats=
+document.querySelectorAll(".seat.selected");
+
+if(selectedSeats.length===0){
+alert("Bitte Sitzplatz wählen");
+return;
+}
+
+const hall=document.getElementById("hall").value;
+const date=document.getElementById("date").value;
+const time=document.getElementById("time").value;
+
+alert(
+`Buchung erfolgreich!
+
+Film: ${currentMovie}
+Saal: ${hall}
+Datum: ${date}
+Uhrzeit: ${time}
+Sitze: ${selectedSeats.length}`
+);
+
+}
+
+renderMovies();
+
+</script>
+
+</body>
+</html>
