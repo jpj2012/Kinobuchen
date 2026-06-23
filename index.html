@@ -142,8 +142,6 @@ margin-right:5px;
 
 .free{ background:#374151; }
 .selected{ background:#3b82f6; }
-.occupied{ background:#ef4444; }
-.vip{ background:#f59e0b; }
 
 .seats{
 display:grid;
@@ -171,15 +169,6 @@ transform:scale(1.05);
 
 .seat.selected{
 background:#3b82f6;
-}
-
-.seat.occupied{
-background:#ef4444;
-cursor:not-allowed;
-}
-
-.seat.vip{
-background:#f59e0b;
 }
 
 .book-btn{
@@ -260,8 +249,6 @@ placeholder="Film suchen..." onkeyup="searchMovie()">
 <div class="legend">
 <div><span class="box free"></span>Frei</div>
 <div><span class="box selected"></span>Ausgewählt</div>
-<div><span class="box occupied"></span>Reserviert</div>
-<div><span class="box vip"></span>VIP</div>
 </div>
 
 <div id="seats" class="seats"></div>
@@ -340,24 +327,13 @@ function createSeats(){
 const seats = document.getElementById("seats");
 seats.innerHTML = "";
 
-const reserved = [2,6,9];
-
 for(let i=1;i<=15;i++){
 
 const seat = document.createElement("div");
 seat.className = "seat";
 seat.textContent = i;
 
-if(reserved.includes(i)){
-seat.classList.add("occupied");
-}
-
-if(i > 12){
-seat.classList.add("vip");
-}
-
 seat.onclick = () => {
-if(seat.classList.contains("occupied")) return;
 seat.classList.toggle("selected");
 };
 
